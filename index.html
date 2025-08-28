@@ -1,13 +1,25 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Sala3</title>
+  <title>Reservas Sala 3</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 </head>
-<body class="container mt-5">
-  <h1>Cuidato - Sala 3</h1>
-  <p>Bem-vindo/a! Faça login para continuar.</p>
-  <button class="btn btn-primary" onclick="window.location.href='reservas.html'">Entrar</button>
+<body class="bg-light p-4">
+
+  <div class="container">
+    <h2 class="mb-4">Sala 3</h2>
+    
+    <button class="btn btn-danger mb-3" onclick="logout()">Sair</button>
+
+    <div class="mb-3">
+      <label for="reservaDate" class="form-label">Escolha a data</label>
+      <input type="date" id="reservaDate" class="form-control" onchange="carregarReservas()">
+    </div>
+
+    <div id="horarios" class="row g-2"></div>
+  </div>
+
+  <script src="./js/reserva.js"></script>
 </body>
 </html>
