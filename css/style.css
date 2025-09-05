@@ -1,2 +1,21 @@
 :root { --gap: .5rem; }
+
 .slot-btn { min-height: 44px; }
+
+.fc-daygrid-day.fc-selected-day {
+  outline: 2px solid #0d6efd;
+  outline-offset: -2px;
+  background-color: rgba(13,110,253, .06);
+}
+
+@media (max-width: 576px) {
+  .container { padding-left: .75rem; padding-right: .75rem; }
+  .row.g-4 { --bs-gutter-x: .75rem; --bs-gutter-y: .75rem; }
+  .card { border-radius: .75rem; }
+  .slot-btn { min-height: 48px; font-size: .95rem; }
+
+  .fc .fc-toolbar-title { font-size: 1.05rem; }
+  .fc .fc-button { padding: .25rem .5rem; font-size: .875rem; }
+
+  .navbar .btn { padding: .35rem .5rem; }
+}

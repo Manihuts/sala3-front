@@ -21,27 +21,25 @@
     location.href = "login.html";
   });
 
+  // Helpers
   function hhmm(s) {
-    return String(s || "").slice(0, 5);
-  } // "HH:MM[:SS]" -> "HH:MM"
+    return String(s || "").slice(0, 5); // "HH:MM[:SS]" -> "HH:MM"
+  } 
   function add30(hhmmStr) {
-    const [h, m] = hhmm(hhmmStr).split(":").map(Number);
-    const total = h * 60 + m + 30;
-    const HH = String(Math.floor(total / 60)).padStart(2, "0");
-    const MM = String(total % 60).padStart(2, "0");
+    const [h,m] = hhmm(hhmmStr).split(':').map(Number);
+    const total = h*60 + m + 30;
+    const HH = String(Math.floor(total/60)).padStart(2,'0');
+    const MM = String(total % 60).padStart(2,'0');
     return `${HH}:${MM}`;
   }
-
   function dateBR(ymd) {
     const [y, m, d] = String(ymd || "").split("-");
     if (!y || !m || !d) return ymd;
     return `${d.padStart(2, "0")}/${m.padStart(2, "0")}/${y}`;
   }
-
   function cmp(a, b) {
     return a < b ? -1 : a > b ? 1 : 0;
   }
-
   function sortByDateTime(list) {
     return [...list].sort((r1, r2) => {
       const c = cmp(r1.date, r2.date);
@@ -49,13 +47,12 @@
       return cmp(hhmm(r1.startTime), hhmm(r2.startTime));
     });
   }
-
-  function groupByUser(reservas) {
+  function groupByUser(reservas){
     const map = new Map(); // userId -> { user, items: [] }
-    for (const r of reservas) {
+    for (const r of reservas){
       const u = r.User || {};
-      const key = String(u.id ?? "_unknown");
-      if (!map.has(key)) {
+      const key = String(u.id ?? '_unknown');
+      if (!map.has(key)){
         map.set(key, { user: u, items: [] });
       }
       map.get(key).items.push(r);
@@ -69,20 +66,19 @@
       contentArea.innerHTML = `<div class="alert alert-info">Você ainda não possui reservas.</div>`;
       return;
     }
+
     const list = document.createElement("div");
     list.className = "list-group";
+
     for (const r of items) {
       const li = document.createElement("div");
-      li.className =
-        "list-group-item d-flex justify-content-between align-items-center";
+      li.className = "list-group-item d-flex justify-content-between align-items-center";
 
       const start = hhmm(r.startTime);
       const end = add30(start);
 
       const left = document.createElement("div");
-      left.innerHTML = `<strong>${dateBR(
-        r.date
-      )}</strong> &middot; ${start} - ${end}`;
+      left.innerHTML = `<strong>${dateBR(r.date)}</strong> &middot; ${start} - ${end}`;
 
       const right = document.createElement("div");
       const cancelBtn = document.createElement("button");
@@ -95,17 +91,17 @@
           time: start,
           userName: user?.name || "",
         };
-        confirmText.textContent = `Cancelar a reserva de ${dateBR(
-          r.date
-        )} às ${start}?`;
+        confirmText.textContent = `Cancelar a reserva de ${dateBR(r.date)} às ${start}?`;
         confirmModal.show();
       });
 
       right.appendChild(cancelBtn);
+
       li.appendChild(left);
       li.appendChild(right);
       list.appendChild(li);
     }
+
     contentArea.innerHTML = "";
     contentArea.appendChild(list);
   }
@@ -115,6 +111,7 @@
       contentArea.innerHTML = `<div class="alert alert-info">Não há reservas cadastradas.</div>`;
       return;
     }
+
     const groups = groupByUser(reservas);
     const wrapper = document.createElement("div");
     wrapper.className = "row g-3";
@@ -126,9 +123,8 @@
       card.className = "card shadow-sm";
 
       const header = document.createElement("div");
-      header.className =
-        "card-header d-flex justify-content-between align-items-center";
-      const userName = group.user?.name || "(sem nome)";
+      header.className = "card-header d-flex justify-content-between align-items-center";
+      const userName = group.user?.name || "(N/A)";
       const userLogin = group.user?.login ? ` (${group.user.login})` : "";
       header.innerHTML = `<strong>${userName}</strong>${userLogin}`;
 
@@ -137,7 +133,7 @@
 
       const items = sortByDateTime(group.items);
       if (!items.length) {
-        body.innerHTML = `<div class="text-muted small">Sem reservas</div>`;
+        body.innerHTML = `<div class="text-muted small">Sem reservas no momento.</div>`;
       } else {
         const table = document.createElement("table");
         table.className = "table table-sm align-middle mb-0";
@@ -170,16 +166,18 @@
           cancelBtn.textContent = "Cancelar";
           cancelBtn.addEventListener("click", () => {
             pendingCancel = { id: r.id, date: r.date, time: start, userName };
-            confirmText.textContent = `Cancelar a reserva de ${userName} em ${dateBR(
-              r.date
-            )} às ${start}?`;
+            confirmText.textContent = `Cancelar a reserva de ${userName} em ${dateBR(r.date)} às ${start}?`;
             confirmModal.show();
           });
           tdActions.appendChild(cancelBtn);
 
           tbody.appendChild(tr);
         }
-        body.appendChild(table);
+
+        const wrap = document.createElement('div');
+        wrap.className = 'table-responsive';
+        wrap.appendChild(table);
+        body.appendChild(wrap);
       }
 
       card.appendChild(header);
@@ -195,6 +193,7 @@
   async function loadList() {
     statusMsg.textContent = "Carregando reservas...";
     contentArea.innerHTML = "";
+    
     try {
       const reservas = await api("/reserva/list"); // admin-> todas (com User); colaborador -> próprias
       statusMsg.textContent = "";
@@ -204,15 +203,16 @@
         renderCollaborator(reservas || []);
       }
     } catch (ex) {
-      statusMsg.textContent =
-        ex.message || "[ERROR] :: Erro ao carregar reservas.";
+      statusMsg.textContent = ex.message || "[ERROR] :: Erro ao carregar reservas.";
     }
   }
 
   confirmOkBtn.addEventListener("click", async () => {
     if (!pendingCancel) return;
+
     const { id } = pendingCancel;
     confirmModal.hide();
+
     try {
       await api(`/reserva/${id}`, { method: "DELETE" });
       await loadList();

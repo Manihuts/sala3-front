@@ -4,6 +4,7 @@
   const user = getUser();
   const userId = user?.id;
   const userRole = user?.role;
+  const isAdmin = userRole === "ADMIN";
 
   const welcome = document.getElementById("welcome");
   if (user?.name) welcome.textContent = `Bem-vindo(a), ${user.name}`;
@@ -24,25 +25,48 @@
   const confirmText = document.getElementById("confirmText");
   const confirmOkBtn = document.getElementById("confirmOkBtn");
 
-  // Estado do modal
-  let pendingAction = null; // { kind:'create', date, start } | { kind:'cancel', id, date, start, end }
+  // Menu dropdown para admins
+  const adminAssignRow = document.getElementById("adminAssignRow");
+  const userSelect = document.getElementById("userSelect");
+  let collaborators = [];
 
-  function hhmm(str) {
-    return String(str || "").slice(0, 5);
+  // Estado do modal { kind: 'create' | 'cancel', ... }
+  let pendingAction = null; // { kind:'create', date, start } | { kind:'cancel', id, date, start, end }
+  let selectedDateStr = null;
+
+  // Helpers
+  function hhmm(s) {
+    return String(s || "").slice(0, 5);
+  }
+  function dateToYmd(date) {
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(
+      date.getDate()
+    )}`;
+  }
+  function add30(hhmmStr) {
+    const [h, m] = hhmm(hhmmStr).split(":").map(Number);
+    const total = h * 60 + m + 30;
+    const HH = String(Math.floor(total / 60)).padStart(2, "0");
+    const MM = String(total % 60).padStart(2, "0");
+    return `${HH}:${MM}`;
   }
 
-  function renderSlots(slots, date, reservesForDate) {
+  function markSelectedDay(ymd) {
+    document
+      .querySelectorAll(".fc-daygrid-day.fc-selected-day")
+      .forEach((el) => el.classList.remove("fc-selected-day"));
+    const cell = calendarEl.querySelector(`[data-date="${ymd}"]`);
+    if (cell) cell.classList.add("fc-selected-day");
+  }
+
+  function renderSlots(slots, date) {
     slotsDiv.innerHTML = "";
     availabilityMsg.textContent = "";
 
     if (!slots.length) {
       availabilityMsg.textContent = "Sem horários disponíveis para este dia.";
       return;
-    }
-
-    const idByStart = new Map();
-    for (const r of reservesForDate) {
-      idByStart.set(hhmm(r.startTime), r.id);
     }
 
     for (const s of slots) {
@@ -57,67 +81,39 @@
         "btn w-100 slot-btn " +
         (s.status === "free" ? "btn-outline-success" : "btn-outline-secondary");
       mainBtn.disabled = s.status !== "free";
-      mainBtn.textContent = `${s.start} – ${s.end}` + (s.by ? ` (${s.by})` : "");
+      mainBtn.textContent = `${s.start}–${s.end}` + (s.by ? ` (${s.by})` : "");
 
       if (s.status === "free") {
         mainBtn.addEventListener("click", () => {
-          pendingAction = { kind: "create", date, start: s.start };
+          pendingAction = { kind: "create", date, start: s.start, end: s.end };
           confirmText.textContent = `Confirmar reserva em ${date} de ${s.start} a ${s.end}?`;
+
+          // Apenas ADMIN: mostrar/select de colaboradores
+          if (isAdmin) {
+            adminAssignRow.classList.remove("d-none");
+          } else {
+            adminAssignRow.classList.add("d-none");
+          }
+
           confirmModal.show();
         });
       }
 
       wrap.appendChild(mainBtn);
-
-      if (s.status === "booked") {
-        const slotStart = s.start;
-        const reservationId = idByStart.get(slotStart);
-
-        const canCancel =
-          (userRole === "ADMIN" && reservationId) ||
-          (userRole === "COLABORADOR" && reservationId);
-
-        if (canCancel) {
-          const cancelBtn = document.createElement("button");
-          cancelBtn.className = "btn btn-outline-danger btn-sm";
-          cancelBtn.textContent = "Cancelar";
-          cancelBtn.addEventListener("click", () => {
-            pendingAction = {
-              kind: "cancel",
-              id: reservationId,
-              date,
-              start: s.start,
-              end: s.end,
-            };
-            confirmText.textContent = `Cancelar reserva em ${date} de ${s.start} a ${s.end}?`;
-            confirmModal.show();
-          });
-          wrap.appendChild(cancelBtn);
-        }
-      }
-
       col.appendChild(wrap);
       slotsDiv.appendChild(col);
     }
   }
 
-  async function loadAvailabilityAndMyReserves(dateStr) {
+  async function loadAvailability(dateStr) {
     selectedDateLabel.textContent = `Data selecionada: ${dateStr}`;
     slotsDiv.innerHTML =
       '<div class="text-muted">Carregando disponibilidade...</div>';
     availabilityMsg.textContent = "";
 
     try {
-      const [slots, reservesAll] = await Promise.all([
-        api(`/reserva/availability?date=${dateStr}`),
-        api("/reserva/list"),
-      ]);
-
-      const reservesForDate = (reservesAll || []).filter(
-        (r) => r.date === dateStr
-      );
-
-      renderSlots(slots, dateStr, reservesForDate);
+      const slots = await api(`/reserva/availability?date=${dateStr}`);
+      renderSlots(slots, dateStr);
     } catch (ex) {
       slotsDiv.innerHTML = "";
       availabilityMsg.textContent =
@@ -133,14 +129,20 @@
 
     try {
       if (action.kind === "create") {
+        const payload = { date: action.date, startTime: action.start };
+
+        if (isAdmin) {
+          const sel = userSelect.value ? Number(userSelect.value) : NaN;
+          if (!Number.isNaN(sel) && sel > 0) {
+            payload.userId = sel;
+          }
+        }
+
         await api("/reserva/create", {
           method: "POST",
-          body: JSON.stringify({ date: action.date, startTime: action.start }),
+          body: JSON.stringify(payload),
         });
-        await loadAvailabilityAndMyReserves(action.date);
-      } else if (action.kind === "cancel") {
-        await api(`/reserva/${action.id}`, { method: "DELETE" });
-        await loadAvailabilityAndMyReserves(action.date);
+        await loadAvailability(action.date);
       }
     } catch (ex) {
       alert(ex.message || "Operação falhou");
@@ -158,11 +160,40 @@
       right: "",
     },
     dateClick: function (info) {
-      const ymd = fmtYmd(info.date); // "YYYY-MM-DD"
-      loadAvailabilityAndMyReserves(ymd);
+      const ymd = dateToYmd(info.date);
+      selectedDateStr = ymd;
+      markSelectedDay(ymd);
+      loadAvailability(ymd);
     },
   });
   calendar.render();
 
-  loadAvailabilityAndMyReserves(fmtYmd(new Date()));
+  selectedDateStr = dateToYmd(new Date());
+  markSelectedDay(selectedDateStr);
+  loadAvailability(selectedDateStr);
+
+  // Caso seja Admin -> Carrega colaboradores em dropdown
+  (async function LoadCollaborators() {
+    if (!isAdmin) return;
+    try {
+      const users = await api("/user/list");
+      collaborators = (users || []).filter((u) => u.role === "COLABORADOR");
+      userSelect.innerHTML = "";
+      if (!collaborators.length) {
+        userSelect.innerHTML = `<option value="">(Nenhum colaborador encontrado)</option>`;
+        return;
+      }
+      const opts = [`<option value="">— selecione —</option>`].concat(
+        collaborators.map(
+          (u) =>
+            `<option value="${u.id}">${
+              u.name || u.login || "#" + u.id
+            }</option>`
+        )
+      );
+      userSelect.innerHTML = opts.join("");
+    } catch (ex) {
+      userSelect.innerHTML = `<option value="">(Falha ao carregar colaboradores)</option>`;
+    }
+  })();
 })();
