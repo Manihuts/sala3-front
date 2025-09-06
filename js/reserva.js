@@ -40,23 +40,19 @@
   }
   function dateToYmd(date) {
     const pad = (n) => String(n).padStart(2, "0");
-    return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(
-      date.getDate()
-    )}`;
+    return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())}`;
   }
-  function add30(hhmmStr) {
-    const [h, m] = hhmm(hhmmStr).split(":").map(Number);
-    const total = h * 60 + m + 30;
-    const HH = String(Math.floor(total / 60)).padStart(2, "0");
-    const MM = String(total % 60).padStart(2, "0");
-    return `${HH}:${MM}`;
+  function ymdToBR(ymd){
+    const [y, m, d] = String(ymd).split('-');
+    if (!y || !m || !d) return ymd;
+    return `${d.padStart(2,'0')}/${m.padStart(2,'0')}/${y}`;
   }
-
   function markSelectedDay(ymd) {
     document
       .querySelectorAll(".fc-daygrid-day.fc-selected-day")
       .forEach((el) => el.classList.remove("fc-selected-day"));
-    const cell = calendarEl.querySelector(`[data-date="${ymd}"]`);
+
+    const cell = calendarEl.querySelector(`.fc-daygrid-day[data-date="${ymd}"]`);
     if (cell) cell.classList.add("fc-selected-day");
   }
 
@@ -86,7 +82,7 @@
       if (s.status === "free") {
         mainBtn.addEventListener("click", () => {
           pendingAction = { kind: "create", date, start: s.start, end: s.end };
-          confirmText.textContent = `Confirmar reserva em ${date} de ${s.start} a ${s.end}?`;
+          confirmText.textContent = `Confirmar reserva em ${ymdToBR(date)} de ${s.start} a ${s.end}?`;
 
           // Apenas ADMIN: mostrar/select de colaboradores
           if (isAdmin) {
@@ -106,7 +102,7 @@
   }
 
   async function loadAvailability(dateStr) {
-    selectedDateLabel.textContent = `Data selecionada: ${dateStr}`;
+    selectedDateLabel.textContent = `Data selecionada: ${ymdToBR(dateStr)}`;
     slotsDiv.innerHTML =
       '<div class="text-muted">Carregando disponibilidade...</div>';
     availabilityMsg.textContent = "";
@@ -159,12 +155,27 @@
       center: "title",
       right: "",
     },
-    dateClick: function (info) {
-      const ymd = dateToYmd(info.date);
-      selectedDateStr = ymd;
-      markSelectedDay(ymd);
-      loadAvailability(ymd);
+
+    dayCellDidMount(info){
+      if (!selectedDateStr) return;
+
+      const ymd = info.dateStr || dateToYmd(info.date);
+      if (ymd === selectedDateStr) {
+        info.el.classList.add('fc-selected-day');
+      }
     },
+
+    datesSet(){
+      if (selectedDateStr) {
+        setTimeout(() => markSelectedDay(selectedDateStr), 0);
+      }
+    },
+
+    dateClick(info) {
+      selectedDateStr = info.dateStr || dateToYmd(info.date);
+      setTimeout(() => markSelectedDay(selectedDateStr), 0);
+      loadAvailability(selectedDateStr);
+    }
   });
   calendar.render();
 
