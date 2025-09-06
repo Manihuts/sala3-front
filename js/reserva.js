@@ -40,7 +40,7 @@
   }
   function dateToYmd(date) {
     const pad = (n) => String(n).padStart(2, "0");
-    return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())}`;
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
   }
   function ymdToBR(ymd){
     const [y, m, d] = String(ymd).split('-');
@@ -194,7 +194,7 @@
         userSelect.innerHTML = `<option value="">(Nenhum colaborador encontrado)</option>`;
         return;
       }
-      const opts = [`<option value="">— selecione —</option>`].concat(
+      const opts = [`<option value="">Marcar para si próprio</option>`].concat(
         collaborators.map(
           (u) =>
             `<option value="${u.id}">${
