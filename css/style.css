@@ -19,6 +19,15 @@
   background-color: #b599e4;
 }
 
+.fc-daygrid-day.has-bookings .fc-daygrid-day-top::after {
+  content: '';
+  display: inline-block;
+  width: .5rem; height: .5rem;
+  border-radius: 999px;
+  margin-left: .25rem;
+  background: #7C3AED;
+}
+
 @media (max-width: 576px) {
   .container { padding-left: .75rem; padding-right: .75rem; }
   .row.g-4 { --bs-gutter-x: .75rem; --bs-gutter-y: .75rem; }

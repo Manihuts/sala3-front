@@ -55,12 +55,6 @@
     const cell = calendarEl.querySelector(`.fc-daygrid-day[data-date="${ymd}"]`);
     if (cell) cell.classList.add("fc-selected-day");
   }
-  async function loadMonthSummary(startStr, endStr){
-    const data = await api(`/reserva/summary?from=${startStr}&to=${endStr}`);
-    const has = new Set((data || []).filter(x => (x.count||0) > 0).map(x => String(x.date)));
-    return has;
-  }
-
   function paintBookedDays(bookedSet){
     calendarEl.querySelectorAll('.fc-daygrid-day.has-bookings').forEach(el => el.classList.remove('has-bookings'));
 
@@ -69,7 +63,21 @@
       if (bookedSet.has(ymd)) el.classList.add('has-bookings');
     });
   }
+  function onlyYMD(sOrDate){
+    if (typeof sOrDate === 'string') return sOrDate.slice(0, 10);
+    return dateToYmd(sOrDate);
+  }
+  function minusOneDay(ymd){
+    const d = new Date(ymd + 'T00:00:00');
+    d.setDate(d.getDate() - 1);
+    return dateToYmd(d);
+  }
 
+  async function loadMonthSummary(startStr, endStr){
+    const data = await api(`/reserva/summary?from=${startStr}&to=${endStr}`);
+    const has = new Set((data || []).filter(x => (x.count||0) > 0).map(x => String(x.date)));
+    return has;
+  }
 
   function renderSlots(slots, date) {
     slotsDiv.innerHTML = "";
@@ -186,10 +194,11 @@
       }
 
       try {
-        const start = info.startStr || dateToYmd(info.start);
-        const end = info.endStr || dateToYmd(info.end);
-        const booked = await loadMonthSummary(start, end);
+        const from = onlyYMD(info.startStr || info.start);
+        const endExcl = onlyYMD(info.endStr || info.end);
+        const to = minusOneDay(endExcl);
 
+        const booked = await loadMonthSummary(from, to);
         paintBookedDays(booked);
       } catch (err) {
         console.warn("Calendário summary indisponível: " , err?.message || err);
