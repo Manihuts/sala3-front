@@ -55,6 +55,21 @@
     const cell = calendarEl.querySelector(`.fc-daygrid-day[data-date="${ymd}"]`);
     if (cell) cell.classList.add("fc-selected-day");
   }
+  async function loadMonthSummary(startStr, endStr){
+    const data = await api(`/reserva/summary?from=${startStr}&to=${endStr}`);
+    const has = new Set((data || []).filter(x => (x.count||0) > 0).map(x => String(x.date)));
+    return has;
+  }
+
+  function paintBookedDays(bookedSet){
+    calendarEl.querySelectorAll('.fc-daygrid-day.has-bookings').forEach(el => el.classList.remove('has-bookings'));
+
+    calendarEl.querySelectorAll('.fc-daygrid-day[data-date]').forEach(el => {
+      const ymd = el.getAttribute('data-date');
+      if (bookedSet.has(ymd)) el.classList.add('has-bookings');
+    });
+  }
+
 
   function renderSlots(slots, date) {
     slotsDiv.innerHTML = "";
@@ -156,7 +171,7 @@
       right: "",
     },
 
-    dayCellDidMount(info){
+    dayCellDidMount(info) {
       if (!selectedDateStr) return;
 
       const ymd = info.dateStr || dateToYmd(info.date);
@@ -165,9 +180,19 @@
       }
     },
 
-    datesSet(){
+    datesSet: async(info) => {
       if (selectedDateStr) {
         setTimeout(() => markSelectedDay(selectedDateStr), 0);
+      }
+
+      try {
+        const start = info.startStr || dateToYmd(info.start);
+        const end = info.endStr || dateToYmd(info.end);
+        const booked = await loadMonthSummary(start, end);
+
+        paintBookedDays(booked);
+      } catch (err) {
+        console.warn("Calendário summary indisponível: " , err?.message || err);
       }
     },
 
