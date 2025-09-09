@@ -9,25 +9,36 @@
   <script>window.API_BASE = 'https://sala3-back-production.up.railway.app';</script>
 </head>
 <body class="bg-content">
+
   <nav class="bg-navbar navbar navbar-light shadow-sm">
     <div class="container-fluid">
-      <a class="navbar-brand mb-0 h1" href="reserva.html">SALA 3</a>
-      <div class="d-flex align-items-center gap-2 flex-wrap">
-        <span id="welcome"></span>
-        <div class="row g-2 align-items-stretch text-nowrap w-100">
-          <div class="col-4">
-            <a href="minhas_infos.html" class="btn btn-primary btn-sm w-100 text-truncate" title="Minhas informações">Meu perfil</a>
-          </div>
-          <div class="col-5">
-            <a href="reserva.html" class="btn btn-primary btn-sm w-100 text-truncate" title="Nova reserva">Nova reserva</a>
-          </div>
-          <div class="col-3">
-            <button id="logoutBtn" class="btn btn-danger btn-sm w-100 text-truncate">Sair</button>
-          </div>
-        </div>
+      <span class="navbar-brand mb-0 h1">SALA 3</span>
+
+      <div class="flex-grow-1 text-center">
+        <span id="welcome" class="small"></span>
       </div>
+
+      <button class="navbar-toggler border-0" type="button"
+              data-bs-toggle="offcanvas" data-bs-target="#appMenu"
+              aria-controls="appMenu" aria-label="Abrir menu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
     </div>
   </nav>
+
+  <!-- Menu lateral -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="appMenu" aria-labelledby="appMenuLabel">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title" id="appMenuLabel">SALA 3</h5>
+      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column gap-2">
+      <a href="minhas_infos.html" class="btn btn-outline-primary w-100">Meu perfil</a>
+      <a href="reserva.html" class="btn btn-outline-primary w-100">Nova reserva</a>
+      <hr class="my-2">
+      <button id="logoutBtn" class="btn btn-danger w-100">Sair</button>
+    </div>
+  </div>
 
   <div class="container py-4">
     <h4 class="mb-3">Minhas reservas</h4>
