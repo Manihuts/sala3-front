@@ -173,6 +173,10 @@
   const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "dayGridMonth",
     locale: "pt-br",
+    titleFormat: {
+      month: "short",
+      year: "numeric",
+    },
     selectable: false,
     headerToolbar: {
       left: "prev,next today",
