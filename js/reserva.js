@@ -5,6 +5,7 @@
   const userId = user?.id;
   const userRole = user?.role;
   const isAdmin = userRole === "ADMIN";
+  let bookedDays = new Set();
 
   const welcome = document.getElementById("welcome");
   if (user?.name) welcome.textContent = `Bem-vindo(a), ${user.name}`;
@@ -161,6 +162,10 @@
           method: "POST",
           body: JSON.stringify(payload),
         });
+
+        bookedDays.add(action.date);
+        paintBookedDays(bookedDays);
+
         await loadAvailability(action.date);
       }
     } catch (ex) {
@@ -185,11 +190,14 @@
     },
 
     dayCellDidMount(info) {
-      if (!selectedDateStr) return;
-
       const ymd = info.dateStr || dateToYmd(info.date);
-      if (ymd === selectedDateStr) {
+
+      if (selectedDateStr && ymd === selectedDateStr) {
         info.el.classList.add('fc-selected-day');
+      }
+
+      if (bookedDays.has(ymd)) {
+        info.el.classList.add('has-bookings');
       }
     },
 
@@ -203,8 +211,8 @@
         const endExcl = onlyYMD(info.endStr || info.end);
         const to = minusOneDay(endExcl);
 
-        const booked = await loadMonthSummary(from, to);
-        paintBookedDays(booked);
+        bookedDays = await loadMonthSummary(from, to);
+        paintBookedDays(bookedDays);
       } catch (err) {
         console.warn("Calendário summary indisponível: " , err?.message || err);
       }
