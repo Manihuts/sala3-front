@@ -172,6 +172,7 @@
   const calendarEl = document.getElementById("calendar");
   const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "dayGridMonth",
+    locale: "pt-br",
     selectable: false,
     headerToolbar: {
       left: "prev,next today",

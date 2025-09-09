@@ -8,15 +8,23 @@
   <link rel="stylesheet" href="./css/style.css">
   <script>window.API_BASE = 'https://sala3-back-production.up.railway.app';</script>
 </head>
-<body class="bg-light">
-  <nav class="navbar navbar-light bg-white shadow-sm">
+<body class="bg-content">
+  <nav class="bg-navbar navbar navbar-light bg-white shadow-sm">
     <div class="container-fluid">
       <a class="navbar-brand mb-0 h1" href="reserva.html">Sala 3</a>
       <div class="d-flex align-items-center gap-2 flex-wrap">
         <span id="welcome" class="text-muted"></span>
-        <a href="minhas_infos.html" class="btn btn-outline-secondary btn-sm">Minhas informações</a>
-        <a href="reserva.html" class="btn btn-outline-primary btn-sm">Nova reserva</a>
-        <button id="logoutBtn" class="btn btn-outline-secondary btn-sm">Sair</button>
+        <div class="row g-2 align-items-stretch text-nowrap w-100">
+          <div class="col-4">
+            <a href="minhas_infos.html" class="btn btn-outline-secondary btn-sm w-100 text-truncate" title="Minhas informações">Meu perfil</a>
+          </div>
+          <div class="col-4">
+            <a href="reserva.html" class="btn btn-outline-primary btn-sm w-100 text-truncate" title="Minhas reservas">Nova reserva</a>
+          </div>
+          <div class="col-4">
+            <button id="logoutBtn" class="btn btn-outline-secondary btn-sm w-100 text-truncate">Sair</button>
+          </div>
+        </div>
       </div>
     </div>
   </nav>

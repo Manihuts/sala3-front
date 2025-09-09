@@ -28,6 +28,10 @@
   background: #7C3AED;
 }
 
+.bg-content, .bg-navbar {
+  background-color: #FDFBF3;
+}
+
 @media (max-width: 576px) {
   .container { padding-left: .75rem; padding-right: .75rem; }
   .row.g-4 { --bs-gutter-x: .75rem; --bs-gutter-y: .75rem; }
