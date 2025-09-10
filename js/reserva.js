@@ -73,6 +73,10 @@
     d.setDate(d.getDate() - 1);
     return dateToYmd(d);
   }
+  function isPastDateYMD(ymd) {
+    const today = dateToYmd(new Date());
+    return ymd < today;
+  }
 
   async function loadMonthSummary(startStr, endStr){
     const data = await api(`/reserva/summary?from=${startStr}&to=${endStr}`);
@@ -97,9 +101,7 @@
       wrap.className = "d-grid gap-1";
 
       const mainBtn = document.createElement("button");
-      mainBtn.className =
-        "btn w-100 slot-btn " +
-        (s.status === "free" ? "btn-outline-success" : "btn-outline-secondary");
+      mainBtn.className = "btn w-100 slot-btn " + (s.status === "free" ? "btn-outline-success" : "btn-outline-secondary");
       mainBtn.disabled = s.status !== "free";
       mainBtn.textContent = `${s.start}–${s.end}` + (s.by ? ` (${s.by})` : "");
 
@@ -221,6 +223,13 @@
     dateClick(info) {
       selectedDateStr = info.dateStr || dateToYmd(info.date);
       setTimeout(() => markSelectedDay(selectedDateStr), 0);
+
+      if (isPastDateYMD(selectedDateStr)) {
+        availabilityMsg.textContent = "Não é possível reservar datas passadas.";
+        slotsDiv.innerHTML = "";
+        return;
+      }
+
       loadAvailability(selectedDateStr);
     }
   });
