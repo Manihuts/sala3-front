@@ -195,7 +195,7 @@
     contentArea.innerHTML = "";
     
     try {
-      const reservas = await api("/reserva/list"); // admin-> todas (com User); colaborador -> próprias
+      const reservas = await api("/reserva/list?upcoming=1"); // admin-> todas (com User); colaborador -> próprias
       statusMsg.textContent = "";
       if (user?.role === "ADMIN") {
         renderAdmin(reservas || []);
