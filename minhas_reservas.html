@@ -41,8 +41,13 @@
   </div>
 
   <div class="container py-4">
-    <h4 class="mb-3">Minhas reservas</h4>
-
+    <div class="d-flex align-items-center justify-content-between">
+      <h4 class="mb-3">MINHAS RESERVAS</h4>
+      <button id="btnMonthlyReport" class="btn btn-success btn-sm mb-2 d-none">
+        Gerar relatório
+      </button>
+    </div>
+  
     <div id="contentArea"></div>
 
     <div class="text-muted small mt-3" id="statusMsg"></div>
@@ -62,6 +67,29 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
           <button type="button" class="btn btn-danger" id="confirmOkBtn">Cancelar reserva</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal relatório -->
+  <div class="modal fade" id="reportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Relatório (mês passado)</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="reportContainer" class="list-group small">
+          </div>
+          <div id="reportEmpty" class="text-muted small d-none mt-2">
+            Sem reservas no mês anterior.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <span id="reportTotal" class="me-auto text-muted small"></span>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
         </div>
       </div>
     </div>

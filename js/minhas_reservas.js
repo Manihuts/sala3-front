@@ -2,17 +2,24 @@
   if (!requireAuth()) return;
 
   const user = getUser();
+  const isAdmin = user?.role === "ADMIN";
   const welcome = document.getElementById("welcome");
   const logoutBtn = document.getElementById("logoutBtn");
   const contentArea = document.getElementById("contentArea");
   const statusMsg = document.getElementById("statusMsg");
 
-  // Modal
+  // Modal de confirmação
   const confirmModalEl = document.getElementById("confirmModal");
   const confirmModal = new bootstrap.Modal(confirmModalEl);
   const confirmText = document.getElementById("confirmText");
   const confirmOkBtn = document.getElementById("confirmOkBtn");
   let pendingCancel = null; // { id, date, time, userName }
+
+  // Botão "Gerar relatório" aparece só para admins
+  const btnMonthly = document.getElementById("btnMonthlyReport");
+  if (isAdmin && btnMonthly) {
+    btnMonthly.classList.remove("d-none");
+  }
 
   if (user?.name) welcome.textContent = `Bem-vindo(a), ${user.name}`;
   logoutBtn?.addEventListener("click", () => {
@@ -222,6 +229,53 @@
       pendingCancel = null;
     }
   });
+
+  async function fetchMonthlyReport() {
+    return api("/reserva/relatorio/ultimo-mes");
+  }
+
+  function renderMonthlyReport(list) {
+    const box = document.getElementById('reportContainer');
+    const empty = document.getElementById('reportEmpty');
+    const totalSpan = document.getElementById('reportTotal');
+
+    box.innerHTML = '';
+    empty.classList.add('d-none');
+
+    let total = 0;
+    (list || []).forEach(item => {
+      const name = item.name || item.login || ('#' + item.userId);
+      const li = document.createElement('div');
+      li.className = 'list-group-item d-flex justify-content-between align-items-center';
+      li.innerHTML = `
+        <span class="text-truncate" style="max-width: 180px;">${name}</span>
+        <span class="badge bg-primary rounded-pill">${item.count}</span>
+      `;
+      box.appendChild(li);
+      total += Number(item.count || 0);
+    });
+
+    if (!list || list.length === 0) {
+      empty.classList.remove('d-none');
+      totalSpan.textContent = '';
+    } else {
+      totalSpan.textContent = `Total: ${total}`;
+    }
+  }
+
+  if (btnMonthly) {
+    btnMonthly.addEventListener('click', async () => {
+      try {
+        const data = await fetchMonthlyReport();
+        renderMonthlyReport(data);
+
+        const modal = new bootstrap.Modal(document.getElementById("reportModal"));
+        modal.show();
+      } catch (err) {
+        alert(err?.message || "[ERROR] :: Falha ao gerar o relatório.");
+      }
+    });
+  }
 
   loadList();
 })();
